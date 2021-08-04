@@ -1,0 +1,212 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 31.07.2021 17:36:34
+-- Design Name: 
+-- Module Name: ALU - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+entity half_adder is
+    Port ( a,b: in std_logic;
+           sum,carry: out std_logic);
+end half_adder;
+
+architecture behavioral of half_adder is
+begin
+        sum <= a xor b;
+        carry <= a and b;   
+end behavioral;        
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity half_subtractor is
+    Port(a,b: in std_logic;
+        diff,borr: out std_logic);
+end half_subtractor;
+
+architecture HalfSub of half_subtractor is
+begin
+    diff<= a xor b;
+    borr<= (not a) and b;
+end HalfSub;
+    
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity bitSubtractor is
+    Port(a,b,c: in std_logic;
+        diff,borr:out std_logic);
+end bitSubtractor;
+
+architecture fullsub of bitSubtractor is
+    signal diff1,borr1,borr2: std_logic;
+    component half_subtractor is
+        Port(a,b: in std_logic;
+            diff,borr: out std_logic);                   
+    end component;
+begin
+    HS0: half_Subtractor
+        port map(a,b,diff1,borr1);
+    HS1: half_Subtractor
+        port map(diff1,c,diff,borr2);
+    borr<= borr1 or borr2;
+end fullsub;
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity fourbitsubtractor is
+    Port( a,b: in std_logic_vector(3 downto 0);
+          diff: out std_logic_vector(3 downto 0);
+          borr: out std_logic);
+end fourbitsubtractor;
+
+architecture fourbitsub of fourbitsubtractor is
+    signal sig0,sig1,sig2,c: std_logic;
+    component bitSubtractor is
+        Port(a,b,c: in std_logic;
+            diff,borr:out std_logic);
+    end component;                     
+begin
+    c<= '0';
+    FS0: bitSubtractor
+        port map(a(0),b(0),c,diff(0),sig0);
+    FS1: bitSubtractor
+        port map(a(1),b(1),sig0,diff(1),sig1);        
+    FS2: bitSubtractor
+        port map(a(2),b(2),sig1,diff(2),sig2);
+    FS3: bitSubtractor
+        port map(a(3),b(3),sig2,diff(3),borr);   
+end fourbitsub;                     
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity full_adder is
+    Port(a,b,c: in std_logic;
+         sum,carry: out std_logic);
+end full_adder;
+
+architecture behavioral of full_adder is
+    signal sum1,carry1,carry2: std_logic; 
+    component half_adder is
+        Port ( a,b: in std_logic;
+               sum,carry: out std_logic);
+    end component;
+begin
+    HA0: half_adder
+        port map(a,b,sum1,carry1);
+    HA1: half_adder
+        port map(sum1,c,sum,carry2);
+    carry <= carry1 or carry2;
+end behavioral;
+
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;                        
+
+entity four_bit_adder is
+    Port(a,b:in std_logic_vector(3 downto 0);
+         sum: out std_logic_vector(3 downto 0);
+         carry: out std_logic);
+end four_bit_adder;
+
+architecture behavioral of four_bit_adder is
+    signal sig0,sig1,sig2: std_logic;
+    signal c: std_logic;
+    component full_adder is
+        Port(a,b,c: in std_logic;
+             sum,carry: out std_logic);
+    end component;
+begin
+    c<= '0';
+    FA0: full_adder
+        port map(a(0),b(0),c,sum(0),sig0);
+    FA1: full_adder
+        port map(a(1),b(1),sig0,sum(1),sig1);
+    FA2: full_adder
+        port map(a(2),b(2),sig1,sum(2),sig2);
+    FA3: full_adder
+        port map(a(3),b(3),sig2,sum(3),carry);                
+end behavioral;
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;  
+
+entity ALU is
+
+  Port ( S0, S1: in std_logic;
+         A,B: in std_logic_vector(3 downto 0);
+         output: out std_logic_vector(3 downto 0);
+         C_out: out std_logic);
+end ALU;
+
+architecture Behavioral of ALU is
+    signal temp_out0,temp_out1:std_logic_vector(3 downto 0);
+    signal temp_carry,temp_borrow:std_logic;
+    component four_bit_adder is
+        Port(a,b:in std_logic_vector(3 downto 0);
+         sum: out std_logic_vector(3 downto 0);
+         carry: out std_logic);
+     end component;    
+   component fourbitsubtractor is
+    Port( a,b: in std_logic_vector(3 downto 0);
+          diff: out std_logic_vector(3 downto 0);
+          borr: out std_logic);
+    end component;
+
+begin
+    FBA: four_bit_adder
+        port map(A,B,temp_out0,temp_carry);
+    FBS: fourbitsubtractor
+        port map(A,B,temp_out1,temp_borrow);    
+    process (A,B,S0,S1)
+        begin
+            if (S0 ='0' and S1='0') then
+                 output<=temp_out0;
+                 C_out<=temp_carry;
+            elsif ( S0='1' and S1='0') then
+                 output<=temp_out1;
+                 C_out<=temp_borrow;   
+            elsif (S0='0' and S1='1') then
+                output(0)<= A(0) nand B(0);
+                output(1) <= A(1) nand B(1);
+                output(2) <= A(2) nand B(2);
+                output(3) <= A(3) nand B(3);
+                C_out<='0';
+            else
+                output(0)<= A(0) xor B(0);
+                output(1) <= A(1) xor B(1);
+                output(2) <= A(2) xor B(2);
+                output(3) <= A(3) xor B(3);
+                C_out<='0';
+            end if;      
+        --wait for 1 ps;              
+        end Process ;  
+end Behavioral;

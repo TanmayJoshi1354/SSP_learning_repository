@@ -1,0 +1,81 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 31.07.2021 18:32:48
+-- Design Name: 
+-- Module Name: ALU_tb - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+library IEEE;
+use IEEE.Std_logic_1164.all;
+use IEEE.Numeric_Std.all;
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity ALU_tb is
+--  Port ( );
+end ALU_tb;
+
+architecture testbench of ALU_tb is
+    component ALU
+        Port ( S0, S1: in std_logic;
+         A,B: in std_logic_vector(3 downto 0);
+         output: out std_logic_vector(3 downto 0);
+         C_out: out std_logic);
+    end component;
+    signal S0,S1: std_logic;
+    signal A,B: std_logic_vector(3 downto 0);
+    signal output: std_logic_vector(3 downto 0);
+    signal C_out: std_logic;
+    
+begin
+    uut : ALU port map(S0,S1,A,B,output,C_out);
+    stimulus: process
+    
+    begin
+        S0 <= '0';
+        S1 <= '1';
+        A <= "0101";
+        B <= "0010";
+        wait for 10 ns;
+        S0 <= '0';
+        S1 <= '0';
+        A <= "0101";
+        B <= "0010";
+        wait for 10 ns;
+        S0 <= '1';
+        S1 <= '0';
+        A <= "0101";
+        B <= "0010";
+        wait for 10 ns;
+        S0 <= '0';
+        S1 <= '1';
+        A <= "0101";
+        B <= "0010";
+        wait for 10 ns;
+        S0 <= '1';
+        S1 <= '1';
+        A <= "0101";
+        B <= "0000";
+        wait for 10 ns;
+    end process;
+end;    
+
